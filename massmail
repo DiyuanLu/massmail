@@ -160,10 +160,10 @@ def parse_command_line_options(arguments):
         elif option == "-z":
             options['server'] = value
 
-    if len(args) == 0:
+    if not args:
         error('You must specify a parameter file')
 
-    if len(options['from']) == 0:
+    if not options['from']:
         error('You must set a from address with option -F')
 
     if options['server'] is None and not options['fake']:
