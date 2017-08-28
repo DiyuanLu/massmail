@@ -106,10 +106,10 @@ My self.
 
 """%(PROGNAME, PROGNAME)
 
-def error(s):
+def error(arg_s):
     '''error'''
     sys.stderr.write(PROGNAME+': ')
-    sys.stderr.write(s+'\n')
+    sys.stderr.write(arg_s+'\n')
     sys.stderr.flush()
     sys.exit(-1)
 
@@ -190,18 +190,18 @@ def parse_parameter_file(options):
 
     try:
         pars = unicode(pars, encoding=options['encoding'])
-    except UnicodeDecodeError, e:
-        error('Error decoding "'+options['fn_parameters']+'": '+str(e))
+    except UnicodeDecodeError, err:
+        error('Error decoding "'+options['fn_parameters']+'": '+str(err))
 
     try:
         options['subject'] = unicode(options['subject'], encoding=options['encoding'])
-    except UnicodeDecodeError, e:
-        error('Error decoding SUBJECT: '+str(e))
+    except UnicodeDecodeError, err:
+        error('Error decoding SUBJECT: '+str(err))
 
     try:
         options['from'] = unicode(options['from'], encoding=options['encoding'])
-    except UnicodeDecodeError, e:
-        error('Error decoding FROM: '+str(e))
+    except UnicodeDecodeError, err:
+        error('Error decoding FROM: '+str(err))
 
     if options['in_reply_to'] and not options['in_reply_to'].startswith('<'):
         options['in_reply_to'] = '<{}>'.format(options['in_reply_to'])
@@ -242,8 +242,8 @@ def create_email_bodies(options, keywords, email_count, body):
     '''create_email_bodies'''
     try:
         body = unicode(body, encoding=options['encoding'])
-    except UnicodeDecodeError, e:
-        error('Error decoding email body: '+str(e))
+    except UnicodeDecodeError, err:
+        error('Error decoding email body: '+str(err))
 
     # find keywords and substitute with values
     # we need to create email_count bodies
@@ -324,13 +324,13 @@ def test_command_help():
 def test_parse_parameter_file():
     '''test_parse_parameter_file'''
     expected_keywords = {u'$VALUE$': [u'this is a test'], u'$EMAIL$': [u'testrecv@test']}
-    with tempfile.NamedTemporaryFile() as f:
-        f.write('$EMAIL$;$VALUE$\ntestrecv@test;this is a test')
-        f.flush()
+    with tempfile.NamedTemporaryFile() as ff:
+        ff.write('$EMAIL$;$VALUE$\ntestrecv@test;this is a test')
+        ff.flush()
         cmd_options = [
             '-F', 'testfrom@test',
             '-z', 'localhost',
-            f.name,
+            ff.name,
         ]
         options = parse_command_line_options(cmd_options)
         keywords, email_count = parse_parameter_file(options)
@@ -350,15 +350,15 @@ def test_local_sending():
     expected_email['From'] = email_from
     expected_email['Subject'] = email.header.Header(email_subject.encode(email_encoding), email_encoding)
 
-    with tempfile.NamedTemporaryFile() as f:
-        f.write(parameter_string)
-        f.flush()
+    with tempfile.NamedTemporaryFile() as ff:
+        ff.write(parameter_string)
+        ff.flush()
         cmd_options = [
             '-F', email_from,
             '-S', email_subject,
             '-z', 'localhost',
             '-e', email_encoding,
-            f.name
+            ff.name
         ]
         options = parse_command_line_options(cmd_options)
         keywords, email_count = parse_parameter_file(options)
@@ -399,15 +399,15 @@ def fake_smtp_server(address):
 def test_fake_sending():
     '''test_fake_sending'''
     address = 'localhost:1025'
-    with tempfile.NamedTemporaryFile() as f:
-        f.write('$EMAIL$;$VALUE$\ntestrecv@test;this is a test')
-        f.flush()
+    with tempfile.NamedTemporaryFile() as ff:
+        ff.write('$EMAIL$;$VALUE$\ntestrecv@test;this is a test')
+        ff.flush()
 
         with fake_smtp_server(address) as server:
             with replace_stdin('EMAIL=$EMAIL$\nVALUE=$VALUE$'):
                 main(['-F', 'fake@foobar.com',
                       '-z', address,
-                      f.name])
+                      ff.name])
 
     output = server.stderr.read()
     assert 'MAIL FROM:<fake@foobar.com>' in output
