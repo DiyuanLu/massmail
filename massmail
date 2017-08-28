@@ -224,7 +224,7 @@ def parse_parameter_file(options):
     keywords = dict([(key, []) for key in keywords_list])
     for count, line in enumerate(pars[1:]):
         # ignore empty lines
-        if len(line) == 0:
+        if not line:
             continue
         values = [key.strip() for key in line.split(options['sep'])]
         if len(values) != len(keywords_list):
@@ -283,7 +283,7 @@ def send_messages(options, msgs):
     for emailaddr in msgs:
         print 'Sending email to:', emailaddr
         emails = [e.strip() for e in emailaddr.split(',')]
-        if len(options['bcc']) > 0:
+        if options['bcc']:
             emails.append(options['bcc'])
         if options['fake']:
             print msgs[emailaddr].as_string()
@@ -293,7 +293,7 @@ def send_messages(options, msgs):
             except Exception, err:
                 error(str(err))
 
-            if len(out) != 0:
+            if out:
                 error(str(out))
 
     if not options['fake']:
